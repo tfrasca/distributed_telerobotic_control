@@ -4,6 +4,7 @@ import pubnub_config
 import time
 
 uuid = "tmfrasca"
+COMPORT = "/dev/ttyUSB0"
 
 class Listener(SubscribeCallback):
   def __init__(self, kwargs=None):
