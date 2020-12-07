@@ -66,7 +66,8 @@ class RobotController():
     print(message)
     #self.ser.write
 
-  def calculate_inverse_kinematics(self, position):
+  # position should be triple (x,y,z)
+  def calculate_inverse_kinematics(self, position): 
     pass
 
   def run(self):
