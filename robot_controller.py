@@ -1,6 +1,7 @@
 from pubnub import pubnub
 from pubnub.pubnub import SubscribeCallback
 import pubnub_config 
+import math
 import time
 import signal
 from threading import Thread
@@ -67,7 +68,51 @@ class RobotController():
     #self.ser.write
 
   # position should be triple (x,y,z)
-  def calculate_inverse_kinematics(self, position): 
+  # instead, we want to use a position input of (x,y,theta) where theta is in degrees
+  # now, the user will input x, y, and theta rather than x,y,z
+  # for now, the lengths of the linkages are defined in the function
+  def calculate_inverse_kinematics(self, position):
+    # See Figure 3 in: https://www.researchgate.net/publication/328583527_A_Geometric_Approach_to_Inverse_Kinematics_of_a_3_DOF_Robotic_Arm
+    # interpret j0 as a joint with rotation around an axis orthogonal to the surface (shoulder for a human)
+    # j1 as the first joint (elbow for a human)
+    # j2 as the second joint (wrist for human )
+  
+    # Linkage lengths are not defined, feel free to change them here
+    L1 = 10
+    L2 = 10
+  
+    # Calculated X,Y distance
+    dist = math.sqrt(position[0] * position[0] + position[1] * position[1])
+  
+    # Check if point is out of reach
+    if dist > L1 + L2:
+      print("Error: point out of reach!")
+      return
+  
+    # Calculate angle
+    alpha = math.atan2(position[1], position[0])
+  
+    # cos phi 1
+    cos_phi_1 = ((L1 * L1) + (dist * dist) - (L2 * L2)) / (2 * L1 * dist)
+    phi_1 = math.acos(cos_phi_1)
+  
+    # theta 1
+    theta1 = alpha - phi_1
+  
+    # cos phi 2
+    cos_phi_2 = ((L1 * L1) + (L2 * L2) - (dist * dist)) / (2 * L1 * L2)
+    phi_2 = math.acos(cos_phi_2)
+  
+    # theta 2
+    theta2 = math.pi - phi_2
+  
+    # Change to degrees
+    theta1 = theta1 * (180 / math.pi)
+    theta2 = theta2 * (180 / math.pi)
+    theta = position[2]
+  
+    # Change joint angles
+    self.joints = (theta, theta1, theta2)
     pass
 
   def run(self):
