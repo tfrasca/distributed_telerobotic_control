@@ -1,9 +1,20 @@
-//#include <ax12.h>
+#include <ax12.h>
 
 String jointValue;
 #define numJoints 3
 int jointValues[numJoints];
+const float posPerDegree = 1024/300.0; // 1023 max position of dynamixel ax12 at max angle of 300 degree
+const int motorSpeed = 75; // max speed is 1023 which corresponds to  113.664 RPM
+
 void setup() {
+  dxlInit(1000000); // initiate dynamixel communication 1mbps
+
+  for (int i=1; i<=numJoints; i++) { // make sure each servo is in joint mode
+    dxlSetGoalSpeed(i, motorSpeed);
+    if(dxlGetMode(i) != JOINT_MODE) { // preserve EEPROM
+      axSetJointMode(i);
+    }
+  }
   Serial.begin(9600);
 }
 void loop() {
@@ -41,16 +52,29 @@ void loop() {
 }
 
 void moveJoints(int *jointAngles){
+  float pos;
   for (int index =0; index < numJoints; index++) {
-    printJointValue(index+1, jointAngles[index]);
-    //dxlSetGoalPosition(index+1, jointAngles[index]);
+    printJointValue(index, jointAngles[index]);
+    pos = angle2MotorPos(index, jointAngles[index]);
+    printJointValue(index, pos);
+    dxlSetGoalPosition(index+1, pos);
   }
 }
 
-void printJointValue(int jointIndex, int angle) {
+void printJointValue(int jointIndex, float value) {
   Serial.print("j");
   Serial.print(jointIndex);
   Serial.print(" ");
-  Serial.print(angle);
+  Serial.print(value);
   Serial.println(" ");
+}
+
+int angle2MotorPos(int joint, int angle) {
+  int motorPos;
+  if (joint == 0 || joint == 2) {
+    motorPos = (150 + angle) * posPerDegree; // 150 degree on dynamixel is the center for joint 0 frame 
+  } else { //joint == 1
+    motorPos = (240 - angle) * posPerDegree; // 240 degree on dynamixel is the center for joint 1 frame
+  }
+  return motorPos;
 }
