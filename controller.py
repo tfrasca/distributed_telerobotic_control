@@ -24,32 +24,30 @@ def process_serial():
       joint_angle = int(vals[1])
     elif vals[0] =="m":
       mode = int(vals[1])
-      #print(mode)
   ser.close()
-
-ts = Thread(target=process_serial)
-ts.start()
 
 def publisher_callback(envelope, status):
   if status.is_error():
     print("error", status.status_code)
 
+if __name__ =="__main__":
+    ts = Thread(target=process_serial)
+    ts.start()
+    try:
+      uuid = "tmfrasca"
+      pn = pubnub_config.config(uuid)
+      old_joint_angle = 0
+      old_mode = 0
+      while True:
+        print (old_mode, mode)
+        if old_mode != mode:
+          pn.publish().channel("mode").message(mode).pn_async(publisher_callback)
+          old_mode = mode
+        if old_mode == 1:
+          if abs(joint_angle - old_joint_angle) > angle_delta_threshold:
+            pn.publish().channel(JOINT).message(joint_angle).pn_async(publisher_callback)
+            old_joint_angle = joint_angle
+        time.sleep(1)
 
-try:
-  uuid = "tmfrasca"
-  pn = pubnub_config.config(uuid)
-  old_joint_angle = 0
-  old_mode = 0
-  while True:
-    print (old_mode, mode)
-    if old_mode != mode:
-      pn.publish().channel("mode").message(mode).pn_async(publisher_callback)
-      old_mode = mode
-    if old_mode == 1:
-      if abs(joint_angle - old_joint_angle) > angle_delta_threshold:
-        pn.publish().channel(JOINT).message(joint_angle).pn_async(publisher_callback)
-        old_joint_angle = joint_angle
-    time.sleep(1)
-
-except (KeyboardInterrupt):
-  should_read_serial = False
+    except (KeyboardInterrupt):
+      should_read_serial = False
