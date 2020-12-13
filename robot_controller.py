@@ -32,11 +32,12 @@ class RobotController():
     self.mode = 0
     self.should_run = True
     self.move = False
+    self.ee_position = None
     # commented for testing with only one device
-    #try:
-    #  self.ser = serial.Serial(COMPORT, baudrate=BAUDRATE)
-    #except (FileNotFoundError, serial.SerialException):
-    #  print("device not found at", COMPORT)
+    try:
+      self.ser = serial.Serial(COMPORT, baudrate=BAUDRATE)
+    except (FileNotFoundError, serial.SerialException):
+      print("device not found at", COMPORT)
 
   def set_mode(self, mode):
     self.mode = mode
@@ -60,12 +61,10 @@ class RobotController():
   def send_joint_angles(self):
     message = ""
     for key in self.joints:
-      message += key
-      message += " "
       message += str(self.joints[key])
       message += " "
     print(message)
-    #self.ser.write
+    self.ser.write(message.encode())
 
   # position should be triple (x,y,z)
   # instead, we want to use a position input of (x,y,theta) where theta is in degrees
@@ -78,11 +77,11 @@ class RobotController():
     # j2 as the second joint (wrist for human )
   
     # Linkage lengths are not defined, feel free to change them here
-    L1 = 10
-    L2 = 10
+    L1 = 16.0 # cm
+    L2 = 9.5  # cm
   
     # Calculated X,Y distance
-    dist = math.sqrt(position[0] * position[0] + position[1] * position[1])
+    dist = math.sqrt(position[0]**2 + position[1]**2)
   
     # Check if point is out of reach
     if dist > L1 + L2:
@@ -93,14 +92,15 @@ class RobotController():
     alpha = math.atan2(position[1], position[0])
   
     # cos phi 1
-    cos_phi_1 = ((L1 * L1) + (dist * dist) - (L2 * L2)) / (2 * L1 * dist)
+    cos_phi_1 = ((L1**2) + (dist**2) - (L2**2)) / (2 * L1 * dist)
+    print(cos_phi_1)
     phi_1 = math.acos(cos_phi_1)
   
     # theta 1
     theta1 = alpha - phi_1
   
     # cos phi 2
-    cos_phi_2 = ((L1 * L1) + (L2 * L2) - (dist * dist)) / (2 * L1 * L2)
+    cos_phi_2 = ((L1**2) + (L2**2) - (dist**2)) / (2 * L1 * L2)
     phi_2 = math.acos(cos_phi_2)
   
     # theta 2
@@ -119,11 +119,11 @@ class RobotController():
     while self.should_run:
       if self.mode == 1 or self.mode == 2: # user control either joint or end effector position
         if self.move:
+          self.move = False
           if self.mode == 2:
             self.calculate_inverse_kinematics(self.ee_position)
           print("moving")
           self.send_joint_angles()
-          self.move = False
       if self.mode == 3: # fully autonomous
         pass
 
@@ -132,6 +132,23 @@ def handle_signal(signal,frame):
   pn.remove_listener(listener) # something isn't working properly when trying to exit
   sys.exit()
   
+def readCommands(robot):
+  shouldRead = True
+  while shouldRead:
+    pos = input("enter x,y,w to move the robot to position x,y and angle w or q to quit")
+    print(pos)
+    pos = pos.strip()
+    if (pos == "q"):
+      shouldRead = False
+    else:
+      positions = pos.split(",")
+      if len(positions) == 1:
+          positions = pos.split(" ")
+      positions = [int(val) for val in positions]
+      print (positions)
+      robot.calculate_inverse_kinematics(positions)
+
+
 
 if __name__ == "__main__":
   pn = pubnub_config.config(uuid)
@@ -142,3 +159,7 @@ if __name__ == "__main__":
   t1 = Thread(target=rc.run)
   t1.start()
   signal.signal(signal.SIGINT, handle_signal)
+  if (len(sys.argv) > 1):
+    for arg in sys.argv:
+        if arg in ("-d", "--debug"):
+            readCommands(rc)
