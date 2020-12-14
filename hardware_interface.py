@@ -5,8 +5,8 @@ import serial
 from threading import Thread
 import time
 
-COMPORT = "/dev/ttyUSB1"
-#COMPORT = "COM3"
+#COMPORT = "/dev/ttyUSB1"
+COMPORT = "COM3"
 BAUDRATE = 9600
 JOINT = "j0"
 
@@ -62,7 +62,7 @@ class HardwareController:
                 self.joint_angle = int(vals[1])
             elif vals[0] == "m":
                 self.mode = int(vals[1])
-        ser.close()
+        self.ser.close()
 
     def publisher_callback(self, envelope, status):
         if status.is_error():
