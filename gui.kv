@@ -1,0 +1,27 @@
+Controller:
+    cols: 4
+    GridLayout:
+        cols: 1
+        Label:
+            text: "X"
+        TextInput:
+            id: x
+            multiline: False
+    GridLayout:
+        cols: 1
+        Label:
+            text: "Y"
+        TextInput:
+            id: y
+            multiline: False
+    GridLayout:
+        cols: 1
+        Label:
+            text: "W"
+        TextInput:
+            id: w
+            multiline: False
+    Button:
+        id: btn
+        text: "submit"
+        on_release: root.submitCoordinates()
