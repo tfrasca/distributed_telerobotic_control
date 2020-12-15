@@ -12,14 +12,13 @@ JOINT = "j0"
 
 
 class Listener(SubscribeCallback):
-  def __init__(self, hardware_controller):
-    super().__init__()
-    self.hardware_controller = hardware_controller
+    def __init__(self, hardware_controller):
+        super().__init__()
+        self.hardware_controller = hardware_controller
 
-  def message(self, pn, message):
-    print(message.message)
-    if message.channel == "mode":
-      self.hardware_controller.update_mode(message.message)
+    def message(self, pn, message):
+        if message.channel == "mode":
+            self.hardware_controller.update_mode(message.message)
 
 class HardwareController:
     def __init__(self, pub_nub):
@@ -42,7 +41,7 @@ class HardwareController:
     def update_pubnub(self):
         try:
             while True:
-                print (self.old_mode, self.mode)
+                #print (self.old_mode, self.mode)
                 if self.old_mode != self.mode:
                     self.pub_nub.publish().channel("mode").message(self.mode).pn_async(self.publisher_callback)
                     self.old_mode = self.mode
@@ -62,6 +61,7 @@ class HardwareController:
                 self.joint_angle = int(vals[1])
             elif vals[0] == "m":
                 self.mode = int(vals[1])
+                print("Mode:",self.mode)
         self.ser.close()
 
     def publisher_callback(self, envelope, status):
@@ -69,9 +69,10 @@ class HardwareController:
             print("error", status.status_code)
 
     def update_mode(self, mode):
-      if self.old_mode != mode:
-          self.old_mode = mode
-          self.ser.write(str(mode).encode())
+        if self.old_mode != mode:
+            self.old_mode = mode
+            self.ser.write(str(mode).encode())
+            print("Mode:", self.mode)
 
 if __name__ =="__main__":
     uuid = "tmfrasca"
