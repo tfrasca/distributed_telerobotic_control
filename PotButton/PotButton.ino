@@ -28,7 +28,9 @@ void setup() {
 
 void loop() {
   if (Serial.available() > 0) {
-    mode = Serial.readStringUntil("\n").toInt();
+    String tmp = Serial.readStringUntil("\n");
+    Serial.println(tmp.toInt());
+    mode = tmp.toInt();
     changeMode = false;
   }
   if (changeMode) {

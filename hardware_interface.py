@@ -18,6 +18,7 @@ class Listener(SubscribeCallback):
 
     def message(self, pn, message):
         if message.channel == "mode":
+            print("msg",message.message)
             self.hardware_controller.update_mode(message.message)
 
 class HardwareController:
@@ -43,8 +44,8 @@ class HardwareController:
             while True:
                 #print (self.old_mode, self.mode)
                 if self.old_mode != self.mode:
-                    self.pub_nub.publish().channel("mode").message(self.mode).pn_async(self.publisher_callback)
                     self.old_mode = self.mode
+                    self.pub_nub.publish().channel("mode").message(self.old_mode).pn_async(self.publisher_callback)
                 if self.old_mode == 1:
                     if abs(self.joint_angle - self.old_joint_angle) > self.angle_delta_threshold:
                         self.pub_nub.publish().channel(JOINT).message(self.joint_angle).pn_async(self.publisher_callback)
@@ -61,7 +62,9 @@ class HardwareController:
                 self.joint_angle = int(vals[1])
             elif vals[0] == "m":
                 self.mode = int(vals[1])
-                print("Mode:",self.mode)
+                #print("Mode c:",self.mode)
+            else:
+                print(vals)
         self.ser.close()
 
     def publisher_callback(self, envelope, status):
@@ -70,9 +73,9 @@ class HardwareController:
 
     def update_mode(self, mode):
         if self.old_mode != mode:
-            self.old_mode = mode
+            self.mode = mode
             self.ser.write(str(mode).encode())
-            print("Mode:", self.mode)
+            #print("Mode p:", self.mode)
 
 if __name__ =="__main__":
     uuid = "tmfrasca"
