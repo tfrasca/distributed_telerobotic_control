@@ -32,22 +32,22 @@ void loop() {
     changeMode = false;
   }
   if (changeMode) {
-    changeMode = !changeMode;
     Serial.print("m ");
     Serial.println(mode);
+    changeMode = false;
   } else {
-    int angle = deltaAngle*(analogRead(potPin)/1025.0)+minAngle;
+    int angle = deltaAngle*(analogRead(potPin)/1024.0)+minAngle;
     Serial.print("j ");
     Serial.println(angle);
   }
-  delay(20);
+  delay(50);
 }
 
 void handleButtonInterrupt() {
-  int delta = millis() - oldTime;
+  long delta = millis() - oldTime;
   if (delta > btnBounceThresh) {
     changeMode = true;
-    mode = mode%3 +1;
+    mode = mode%3 + 1;
     oldTime = millis();
   }
 }
