@@ -7,7 +7,7 @@ class Controller(GridLayout):
     def submitCoordinates(self):
         try:
             coordinate = (float(self.ids.x.text), float(self.ids.y.text), float(self.ids.w.text))
-            print(coordinate)
+            #print(coordinate)
             pub_nub = App.get_running_app().pub_nub
             pub_nub.publish().channel("ee_position").message(coordinate).pn_async(self.publisher_callback)
         except ValueError:
