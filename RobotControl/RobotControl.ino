@@ -71,10 +71,13 @@ void printJointValue(int jointIndex, float value) {
 
 int angle2MotorPos(int joint, int angle) {
   int motorPos;
-  if (joint == 0 || joint == 2) {
+  if (joint == 0) {
     motorPos = (150 + angle) * posPerDegree; // 150 degree on dynamixel is the center for joint 0 frame 
-  } else { //joint == 1
+  } else if (joint == 1) { //joint == 1
     motorPos = (240 - angle) * posPerDegree; // 240 degree on dynamixel is the center for joint 1 frame
+  } else {
+    motorPos = (150 - angle) * posPerDegree; // 150 degree on dynamixel is the center for joint 0 frame 
   }
+  Serial.println(motorPos);
   return motorPos;
 }
